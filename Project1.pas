@@ -10,9 +10,9 @@ uses
   BCM2837,
   SysUtils,
   Classes,
+  MMC,         {Include the MMC/SD core to access our SD card}
   FileSystem,  {Include the file system core and interfaces}
   FATFS,       {Include the FAT file system driver}
-  MMC,         {Include the MMC/SD core to access our SD card}
   BCM2710,
   Keyboard,    {Keyboard uses USB so that will be included automatically}
   DWCOTG,
@@ -29,12 +29,13 @@ var s,currentdir,currentdir2:string;
     fn:string;
     fs:integer;
     workdir:string;
-    pause1a:boolean=true;
+//    pause1a:boolean=true;
     ch:tkeyboardreport;
     keyboardstatus:array[0..255]of byte;
     activekey:byte=0;
     rptcnt:byte=0;
     buf:Pbyte;
+    drive:string;
 
 // ---- procedures
 
@@ -121,11 +122,22 @@ begin
 
 initmachine;
 
+
+
 fs:=1;
-workdir:='C:\ultibo\';
+if fileexists('C:\kernel7.img') then begin workdir:='C:\ultibo\'; drive:='C:\'; end
+else if fileexists('D:\kernel7.img') then begin workdir:='D:\ultibo\' ; drive:='D:\'; end
+else if fileexists('E:\kernel7.img') then begin workdir:='E:\ultibo\' ; drive:='E:\'; end
+else if fileexists('F:\kernel7.img') then begin workdir:='F:\ultibo\' ; drive:='F:\'; end
+else
+  begin
+  outtextxyz(440,1060,'Error. No Ultibo folder found. Press Enter to reboot',157,2,2);
+  repeat until peek($2060028)=$13;
+  systemrestart(0);
+  end;
 songtime:=0;
-pause1a:=true;
-siddelay:=20000;
+//pause1a:=true;
+//siddelay:=20000;
 setcurrentdir(workdir);
 
 lpoke($206000c,0);
@@ -134,7 +146,7 @@ lpoke ($2060020,1792);
 lpoke ($2060024,1120);
 setataripallette(0);
 main1;
-dirlist('C:\ultibo\');
+dirlist(workdir);
 sleep(1);
 outtextxyz(440,1060,'Select a program with up/down arrows, then Enter to run',157,2,2);
 for i:=0 to 255 do keyboardstatus[i]:=0;
@@ -234,11 +246,11 @@ repeat
       fn:= currentdir2+filenames[sel+selstart,0];
       cls(147);
       outtextxyz( 16,16,'Starting '+ copy(filenames[sel+selstart,0],1,length(filenames[sel+selstart,0])-2) +'...',157,2,2);
-      DeleteFile('C:\kernel7_l.img');
-      RenameFile('C:\kernel7.img','C:\kernel7_l.img');
+      DeleteFile( drive+'kernel7_l.img');
+      RenameFile(drive+'kernel7.img',drive+'kernel7_l.img');
       raster:=traster.create(true);
       raster.start;
-      copyfile2(fn,'c:\kernel7.img');
+      copyfile2(fn,drive+'kernel7.img');
       systemrestart(0);
       end;
   until false;

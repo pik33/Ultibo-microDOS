@@ -5,7 +5,6 @@
 // pik33@o2.pl
 // www.eksperymenty.edu.pl
 // GPL 2.0 or higher
-// uses combinedwaveforms.bin by Johannes Ahlebrand - MIT licensed
 //******************************************************************************
 
 // ----------------------------   This is still alpha quality code
